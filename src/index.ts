@@ -82,13 +82,15 @@ interface Dispatch {
     ): Promise<U>;
 }
 
+export type StoreType = Omit<
+    Store<RootState>,
+    'commit' | 'dispatch' | 'getters'
+> & {
+    commit: Commit;
+    getters: Getters;
+    dispatch: Dispatch;
+};
+
 export function useAppStore() {
-    return useStore() as Omit<
-        Store<RootState>,
-        'commit' | 'dispatch' | 'getters'
-    > & {
-        commit: Commit;
-        getters: Getters;
-        dispatch: Dispatch;
-    };
+    return useStore() as StoreType;
 }
