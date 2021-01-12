@@ -1,5 +1,9 @@
-### Store
-
+## vuex-store-ts
+### Create store module by using the following pattern provide users with type hints
+```bash
+yarn add vuex-store-ts -D
+npm i vuex-store-ts -D
+```
 ```ts
 // src/store/index.ts
 import { createStore } from 'vuex'
