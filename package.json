@@ -1,6 +1,6 @@
 {
   "name": "vuex-store-ts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -18,15 +18,14 @@
   "peerDependencies": {
     "typescript": "^4.1",
     "vue": "^3.0.0",
-    "vuex": "4.0.0-rc.2"
+    "vuex": "^4.0.0-rc.2"
   },
   "devDependencies": {
     "prettier": "*",
-    "tslib": "^2.1.0",
     "typescript": "^4.1"
   },
   "dependencies": {
     "ts-rtcheck": "^1.0.19",
-    "vuex": "4.0.0-rc.2"
+    "vuex": "^4.0.0-rc.2"
   }
 }
