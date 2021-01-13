@@ -6,7 +6,7 @@ npm i vuex-store-ts -D
 ```
 ```ts
 // src/store/index.ts
-import { createStore } from 'vuex'
+import { createStore, StoreType } from 'vuex'
 import * as modules from './modules'
 
 declare module 'vuex-store-ts' {
@@ -17,7 +17,7 @@ declare module 'vuex-store-ts' {
 
 export default createStore({
   modules,
-})
+}) as StoreType
 ```
 
 ```ts
@@ -27,7 +27,7 @@ export { default as user } from './user';
 
 ```ts
 // src/store/modules/book.ts
-import { RootState, A, C } from 'vuex-store-ts'
+import { RootState, A, defineSlice } from 'vuex-store-ts'
 
 declare module 'vuex-store-ts' {
   interface RootState {
@@ -38,18 +38,19 @@ declare module 'vuex-store-ts' {
 }
 type S = RootState['book']
 
-export default {
+export default defineSlice({
+  namespace: 'book',
   namespaced: true,
   state: {
     list: [],
-  } as S,
+  },
   mutations: {
-    setList(state: S, { payload: list }: A<Read[]>) {
+    setList(state, { payload: list }: A<Read[]>) {
       state.list.push(...list)
     },
   },
   actions: {
-    async fetchBooksAsync({ commit }: C, { payload: num }: A<number>) {
+    async fetchBooksAsync({ commit }, { payload: num }: A<number>) {
       const { data } = await fetchBooks(num)
       // assert data is Read[]
       /* 0 is to strip the namespace without triggering ts error */
@@ -58,11 +59,11 @@ export default {
     },
   },
   getters: {
-    listLength(state: S) {
+    listLength(state) {
       return state.list.length
     },
   },
-}
+})
 ```
 
 ```vue

@@ -10,10 +10,37 @@ export type A<T = any> = {
     type: string;
     payload: T;
 };
-export type C = {
+
+type C = {
     commit: Commit;
     dispatch: Dispatch;
+    rootState: RootState;
 };
+
+export function defineSlice<
+    N extends keyof RootState,
+    T extends {
+        namespace: N;
+        namespaced: true;
+        state?: RootState[N];
+        mutations?: Record<
+            string,
+            (state: RootState[N], ...args: any[]) => any
+        >;
+        getters?: any;
+        actions?: Record<
+            string,
+            (
+                _: {
+                    state: RootState[N];
+                } & C,
+                ...args: any[]
+            ) => any
+        >;
+    }
+>(_: T) {
+    return _;
+}
 
 type Join<T extends string | undefined, U extends string> = T extends string
     ? `${T}/${U}`
