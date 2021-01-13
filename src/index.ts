@@ -20,7 +20,6 @@ type C = {
 export function defineSlice<
     N extends keyof RootState,
     T extends {
-        namespace: N;
         namespaced: true;
         state?: RootState[N];
         mutations?: Record<
@@ -38,7 +37,7 @@ export function defineSlice<
             ) => any
         >;
     }
->(_: T) {
+>(namespace: N, _: T) {
     return _;
 }
 

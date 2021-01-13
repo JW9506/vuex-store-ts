@@ -37,8 +37,7 @@ declare module 'vuex-store-ts' {
   }
 }
 
-export default defineSlice({
-  namespace: 'book',
+export default defineSlice('book', {
   namespaced: true,
   state: {
     list: [],
