@@ -51,8 +51,7 @@ export default defineSlice('book', {
     async fetchBooksAsync({ commit }, { payload: num }: A<number>) {
       const { data } = await fetchBooks(num)
       // assert data is Read[]
-      /* 0 is to strip the namespace without triggering ts error */
-      commit<0>({ type: 'setList', payload: data })
+      commit({ type: 'setList', payload: data })
       return data
     },
   },
