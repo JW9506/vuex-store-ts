@@ -27,7 +27,7 @@ export { default as user } from './user';
 
 ```ts
 // src/store/modules/book.ts
-import { RootState, A, defineSlice } from 'vuex-store-ts'
+import { A, defineSlice } from 'vuex-store-ts'
 
 declare module 'vuex-store-ts' {
   interface RootState {
@@ -36,7 +36,6 @@ declare module 'vuex-store-ts' {
     }
   }
 }
-type S = RootState['book']
 
 export default defineSlice({
   namespace: 'book',
