@@ -71,7 +71,6 @@ type Helper<T extends Record<string, any>, F = 0> = F extends 1
     : FilterNamedspacedSlice<T>;
 
 type ExpMutations<
-    F1,
     F2,
     N extends keyof RootState,
     T extends Record<string, any>
@@ -79,7 +78,6 @@ type ExpMutations<
     ? {
           [K in keyof T]: true extends AndLogic<
               true extends isSameType<K, N> ? 0 : 1,
-              F1,
               T[K]['namespaced']
           >
               ? M<T[K], K & string>
@@ -88,7 +86,7 @@ type ExpMutations<
           ? Helper<T, T[N]['namespaced'] extends true ? 0 : 1> | N
           : N]
     : {
-          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+          [K in keyof T]: true extends AndLogic<F2, T[K]['namespaced']>
               ? M<T[K], K & string>
               : M<T[K], undefined>;
       }[keyof T];
@@ -105,7 +103,6 @@ type M<
 }[keyof U];
 
 type ExpActions<
-    F1,
     F2,
     N extends keyof RootState,
     T extends Record<string, any>
@@ -113,7 +110,6 @@ type ExpActions<
     ? {
           [K in keyof T]: true extends AndLogic<
               true extends isSameType<K, N> ? 0 : 1,
-              F1,
               T[K]['namespaced']
           >
               ? D<T[K], K & string>
@@ -122,7 +118,7 @@ type ExpActions<
           ? Helper<T, T[N]['namespaced'] extends true ? 0 : 1> | N
           : N]
     : {
-          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+          [K in keyof T]: true extends AndLogic<F2, T[K]['namespaced']>
               ? D<T[K], K & string>
               : D<T[K], undefined>;
       }[keyof T];
@@ -153,14 +149,12 @@ type G<
       }
     : never;
 
-type Mutations<T, F, N extends keyof RootState> = ExpMutations<
-    T,
+type Mutations<F, N extends keyof RootState> = ExpMutations<
     F,
     N,
     ReturnType<Modules>
 >;
-type Actions<T, F, N extends keyof RootState> = ExpActions<
-    T,
+type Actions<F, N extends keyof RootState> = ExpActions<
     F,
     N,
     ReturnType<Modules>
@@ -168,15 +162,12 @@ type Actions<T, F, N extends keyof RootState> = ExpActions<
 type Getters = ExpGetters<ReturnType<Modules>>;
 
 interface Commit<N extends keyof RootState, F extends 0 | 1 = 1> {
-    <T extends 0 | 1 = 1>(
-        payloadWithType: Mutations<T, F, N>,
-        options?: CommitOptions
-    ): void;
+    (payloadWithType: Mutations<F, N>, options?: CommitOptions): void;
 }
 
 interface Dispatch<N extends keyof RootState, F extends 0 | 1 = 1> {
-    <U = any, T extends 0 | 1 = 1>(
-        payloadWithType: Actions<T, F, N>,
+    <U = any>(
+        payloadWithType: Actions<F, N>,
         options?: DispatchOptions
     ): Promise<U>;
 }
