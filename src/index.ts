@@ -56,13 +56,15 @@ export function defineSlice<
 type Join<T extends string | undefined, U extends string> = T extends string
     ? `${T}/${U}`
     : `${U}`;
-type Helper<T extends Record<string, any>> = {
-    [x in keyof T]: T[x]['namespaced'] extends false
-        ? x
-        : true extends isUnknownOrUndefined<T[x]['namespaced']>
-        ? x
-        : never;
-}[keyof T];
+type Helper<T extends Record<string, any>, F = 0> = F extends 1
+    ? keyof T
+    : {
+          [x in keyof T]: T[x]['namespaced'] extends false
+              ? x
+              : true extends isUnknownOrUndefined<T[x]['namespaced']>
+              ? x
+              : never;
+      }[keyof T];
 
 type ExpMutations<
     F1,
@@ -71,10 +73,14 @@ type ExpMutations<
     T extends Record<string, any>
 > = F2 extends 0
     ? {
-          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+          [K in keyof T]: true extends AndLogic<
+              true extends isSameType<K, N> ? 0 : 1,
+              F1,
+              T[K]['namespaced']
+          >
               ? M<T[K], K & string>
               : M<T[K], undefined>;
-      }[Helper<T> | N]
+      }[Helper<T, T[N]['namespaced'] extends true ? 0 : 1> | N]
     : {
           [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
               ? M<T[K], K & string>
@@ -99,10 +105,14 @@ type ExpActions<
     T extends Record<string, any>
 > = F2 extends 0
     ? {
-          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+          [K in keyof T]: true extends AndLogic<
+              true extends isSameType<K, N> ? 0 : 1,
+              F1,
+              T[K]['namespaced']
+          >
               ? D<T[K], K & string>
               : D<T[K], undefined>;
-      }[Helper<T> | N]
+      }[Helper<T, T[N]['namespaced'] extends true ? 0 : 1> | N]
     : {
           [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
               ? D<T[K], K & string>
