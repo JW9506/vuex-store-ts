@@ -1,4 +1,8 @@
-import { isUnknownOrUndefined, UnionToIntersection } from 'ts-rtcheck';
+import {
+    isUnknownOrUndefined,
+    UnionToIntersection,
+    isSameType,
+} from 'ts-rtcheck';
 import { CommitOptions, DispatchOptions, Store, useStore } from 'vuex';
 
 type AndLogic<T1 = 1, T2 = 1, T3 = 1> = T1 extends 1 | true
@@ -19,16 +23,16 @@ export type A<T = any> = {
     payload: T;
 };
 
-type C = {
-    commit: Commit<0>;
-    dispatch: Dispatch<0>;
+type C<N extends keyof RootState> = {
+    commit: Commit<N, 0>;
+    dispatch: Dispatch<N, 0>;
     rootState: RootState;
 };
 
 export function defineSlice<
     N extends keyof RootState,
     T extends {
-        namespaced: boolean;
+        namespaced?: boolean;
         state?: RootState[N];
         mutations?: Record<
             string,
@@ -40,7 +44,7 @@ export function defineSlice<
             (
                 _: {
                     state: RootState[N];
-                } & C,
+                } & C<N>,
                 ...args: any[]
             ) => any
         >;
@@ -52,12 +56,30 @@ export function defineSlice<
 type Join<T extends string | undefined, U extends string> = T extends string
     ? `${T}/${U}`
     : `${U}`;
-
-type ExpMutations<F1, F2, T extends Record<string, any>> = {
-    [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
-        ? M<T[K], K & string>
-        : M<T[K], undefined>;
+type Helper<T extends Record<string, any>> = {
+    [x in keyof T]: T[x]['namespaced'] extends false
+        ? x
+        : true extends isUnknownOrUndefined<T[x]['namespaced']>
+        ? x
+        : never;
 }[keyof T];
+
+type ExpMutations<
+    F1,
+    F2,
+    N extends keyof RootState,
+    T extends Record<string, any>
+> = F2 extends 0
+    ? {
+          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+              ? M<T[K], K & string>
+              : M<T[K], undefined>;
+      }[Helper<T> | N]
+    : {
+          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+              ? M<T[K], K & string>
+              : M<T[K], undefined>;
+      }[keyof T];
 type M<
     T extends Record<string, any>,
     NS extends string | undefined,
@@ -70,11 +92,22 @@ type M<
         : never;
 }[keyof U];
 
-type ExpActions<F1, F2, T extends Record<string, any>> = {
-    [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
-        ? D<T[K], K & string>
-        : D<T[K], undefined>;
-}[keyof T];
+type ExpActions<
+    F1,
+    F2,
+    N extends keyof RootState,
+    T extends Record<string, any>
+> = F2 extends 0
+    ? {
+          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+              ? D<T[K], K & string>
+              : D<T[K], undefined>;
+      }[Helper<T> | N]
+    : {
+          [K in keyof T]: true extends AndLogic<F1, F2, T[K]['namespaced']>
+              ? D<T[K], K & string>
+              : D<T[K], undefined>;
+      }[keyof T];
 type D<
     T extends Record<string, any>,
     NS extends string | undefined,
@@ -102,20 +135,30 @@ type G<
       }
     : never;
 
-type Mutations<T, F> = ExpMutations<T, F, ReturnType<Modules>>;
-type Actions<T, F> = ExpActions<T, F, ReturnType<Modules>>;
+type Mutations<T, F, N extends keyof RootState> = ExpMutations<
+    T,
+    F,
+    N,
+    ReturnType<Modules>
+>;
+type Actions<T, F, N extends keyof RootState> = ExpActions<
+    T,
+    F,
+    N,
+    ReturnType<Modules>
+>;
 type Getters = ExpGetters<ReturnType<Modules>>;
 
-interface Commit<F extends 0 | 1 = 1> {
+interface Commit<N extends keyof RootState, F extends 0 | 1 = 1> {
     <T extends 0 | 1 = 1>(
-        payloadWithType: Mutations<T, F>,
+        payloadWithType: Mutations<T, F, N>,
         options?: CommitOptions
     ): void;
 }
 
-interface Dispatch<F extends 0 | 1 = 1> {
+interface Dispatch<N extends keyof RootState, F extends 0 | 1 = 1> {
     <U = any, T extends 0 | 1 = 1>(
-        payloadWithType: Actions<T, F>,
+        payloadWithType: Actions<T, F, N>,
         options?: DispatchOptions
     ): Promise<U>;
 }
@@ -124,9 +167,9 @@ export type StoreType = Omit<
     Store<RootState>,
     'commit' | 'dispatch' | 'getters'
 > & {
-    commit: Commit;
+    commit: Commit<keyof RootState>;
     getters: Getters;
-    dispatch: Dispatch;
+    dispatch: Dispatch<keyof RootState>;
 };
 
 export function useAppStore() {
