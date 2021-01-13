@@ -1,12 +1,32 @@
-## vuex-store-ts
-### Create store module by using the following pattern provide users with type hints
+# vuex-store-ts
+
+#### This util provides user with type hints when using vuex, from defining to calling, with minimum boilerplate.
+
+### Exported JavaScript contains no logics
+
+```js
+import { useStore } from 'vuex'
+export function defineSlice(namespace, _) {
+  return _
+}
+export function useAppStore() {
+  return useStore()
+}
+```
+
+### Install
+
 ```bash
 yarn add vuex-store-ts -D
 npm i vuex-store-ts -D
 ```
+
+### Example
+
 ```ts
 // src/store/index.ts
-import { createStore, StoreType } from 'vuex'
+import { StoreType } from 'vuex-store-ts'
+import { createStore } from 'vuex'
 import * as modules from './modules'
 
 declare module 'vuex-store-ts' {
@@ -22,67 +42,102 @@ export default createStore({
 
 ```ts
 // src/store/modules/index.ts
-export { default as user } from './user';
+export { default as user } from './user'
+export { default as loading } from './loading'
 ```
 
 ```ts
-// src/store/modules/book.ts
-import { A, defineSlice } from 'vuex-store-ts'
+// src/store/modules/user.ts
+import { defineSlice, A } from 'vuex-store-ts'
 
 declare module 'vuex-store-ts' {
   interface RootState {
-    book: {
-      list: Read[]
+    user: {
+      isLogin: boolean
     }
   }
 }
 
-export default defineSlice('book', {
-  namespaced: true,
+export default defineSlice('user', {
   state: {
-    list: [],
+    isLogin: false,
   },
   mutations: {
-    setList(state, { payload: list }: A<Read[]>) {
-      state.list.push(...list)
+    setLogin(state, { payload }: A<boolean>) {
+      state.isLogin = payload
     },
   },
   actions: {
-    async fetchBooksAsync({ commit }, { payload: num }: A<number>) {
-      const { data } = await fetchBooks(num)
-      // assert data is Read[]
-      commit({ type: 'setList', payload: data })
-      return data
+    async login({ commit }, { payload }: A<boolean>) {
+      commit({ type: 'loading/setLoading', payload: true })
+      const flag = await loginBusiness(payload)
+      commit({ type: 'setLogin', payload: flag })
+      commit({ type: 'loading/setLoading', payload: false })
     },
   },
-  getters: {
-    listLength(state) {
-      return state.list.length
+})
+
+function loginBusiness(flag: boolean) {
+  return new Promise<boolean>((resolve) => {
+    setTimeout(() => {
+      resolve(flag)
+    }, 800)
+  })
+}
+```
+
+```ts
+// src/store/modules/loading.ts
+import { defineSlice, A } from 'vuex-store-ts'
+
+declare module 'vuex-store-ts' {
+  interface RootState {
+    loading: {
+      isLoading: boolean
+    }
+  }
+}
+
+export default defineSlice('loading', {
+  namespaced: true,
+  state: {
+    isLoading: false,
+  },
+  mutations: {
+    setLoading(state, { payload: flag }: A<boolean>) {
+      state.isLoading = flag
     },
   },
 })
 ```
 
 ```vue
-<script lang="ts">
-import { useAppStore } from 'vuex-store-ts'
-import { computed, defineComponent } from 'vue'
+<template>
+  <div>Home</div>
+  <pre>{{ state }}</pre>
+  <button @click="login">login</button>
+  <button @click="logout">logout</button>
+</template>
 
+<script lang="ts">
+import { computed, defineComponent } from 'vue'
+import { useAppStore } from 'vuex-store-ts'
 export default defineComponent({
   name: 'Home',
-  components: {},
   setup() {
     const store = useAppStore()
-    // all correctly typed
     const state = computed(() => store.state)
-    store.getters['book/listLength']
-    store.dispatch({
-        type: 'book/fetchBooksAsync',
-        payload: 1,
-    })
-    store.getters['book/listLength']
-    })
-    return { }
+    const login = () => {
+      store.dispatch({ type: 'login', payload: true })
+    }
+    const logout = () => {
+      store.dispatch({ type: 'login', payload: false })
+    }
+    return {
+      login,
+      logout,
+      state,
+    }
   },
 })
 </script>
