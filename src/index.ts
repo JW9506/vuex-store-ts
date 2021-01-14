@@ -5,6 +5,23 @@ import {
 } from 'ts-rtcheck';
 import { CommitOptions, DispatchOptions, Store, useStore } from 'vuex';
 
+type Join<T extends string | undefined, U extends string> = T extends string
+    ? `${T}/${U}`
+    : `${U}`;
+type falseOrUnknownOrUndefined<T> = T extends false
+    ? true
+    : true extends isUnknownOrUndefined<T>
+    ? true
+    : never;
+type FilterNamedspacedSlice<T extends Record<string, any>> = {
+    [x in keyof T]: true extends falseOrUnknownOrUndefined<T[x]['namespaced']>
+        ? x
+        : never;
+}[keyof T];
+type Helper<T extends Record<string, any>, F = 0> = F extends 1
+    ? keyof T
+    : FilterNamedspacedSlice<T>;
+
 type AndLogic<T1 = 1, T2 = 1, T3 = 1> = T1 extends 1 | true
     ? T2 extends 1 | true
         ? T3 extends 1 | true
@@ -71,23 +88,6 @@ export function defineSlice<
 >(namespace: N, _: T) {
     return _;
 }
-
-type Join<T extends string | undefined, U extends string> = T extends string
-    ? `${T}/${U}`
-    : `${U}`;
-type falseOrUnknownOrUndefined<T> = T extends false
-    ? true
-    : true extends isUnknownOrUndefined<T>
-    ? true
-    : never;
-type FilterNamedspacedSlice<T extends Record<string, any>> = {
-    [x in keyof T]: true extends falseOrUnknownOrUndefined<T[x]['namespaced']>
-        ? x
-        : never;
-}[keyof T];
-type Helper<T extends Record<string, any>, F = 0> = F extends 1
-    ? keyof T
-    : FilterNamedspacedSlice<T>;
 
 type ExpMutations<
     F2,
