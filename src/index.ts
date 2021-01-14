@@ -14,6 +14,7 @@ type AndLogic<T1 = 1, T2 = 1, T3 = 1> = T1 extends 1 | true
     : never;
 
 export interface RootState {}
+export interface RootGetter {}
 export interface Modules {
     (): never;
 }
@@ -42,9 +43,9 @@ export function defineSlice<
             string,
             (
                 state: RootState[N],
-                getters: any,
+                getters: RootGetter[N],
                 rootState: RootState,
-                rootGetters: any
+                rootGetters: RootGetter
             ) => any
         >;
         actions?: Record<
