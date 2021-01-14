@@ -30,6 +30,16 @@ type C<N extends keyof RootState> = {
     rootState: RootState;
 };
 
+type FlattenObj1Level<
+    K extends any = Record<string, Record<string, any>>
+> = UnionToIntersection<
+    {
+        [x in keyof K]: {
+            [y in keyof K[x] as `${x & string}/${y & string}`]: K[x][y];
+        };
+    }[keyof K]
+>;
+
 export function defineSlice<
     N extends keyof RootState,
     T extends {
@@ -45,7 +55,7 @@ export function defineSlice<
                 state: RootState[N],
                 getters: RootGetter[N],
                 rootState: RootState,
-                rootGetters: RootGetter
+                rootGetters: FlattenObj1Level<RootGetter>
             ) => any
         >;
         actions?: Record<
