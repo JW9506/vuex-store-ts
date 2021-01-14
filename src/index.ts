@@ -38,7 +38,15 @@ export function defineSlice<
             string,
             (state: RootState[N], ...args: any[]) => any
         >;
-        getters?: any;
+        getters?: Record<
+            string,
+            (
+                state: RootState[N],
+                getters: any,
+                rootState: RootState,
+                rootGetters: any
+            ) => any
+        >;
         actions?: Record<
             string,
             (
@@ -144,9 +152,13 @@ type G<
     NS extends string | undefined,
     U extends Record<string, (...args: any[]) => any> = T['getters']
 > = U extends Record<any, any>
-    ? {
-          [K in keyof U as `${NS}/${K & string}`]: ReturnType<U[K]>;
-      }
+    ? true extends falseOrUnknownOrUndefined<T['namespaced']>
+        ? {
+              [K in keyof U]: ReturnType<U[K]>;
+          }
+        : {
+              [K in keyof U as `${NS}/${K & string}`]: ReturnType<U[K]>;
+          }
     : never;
 
 type Mutations<F, N extends keyof RootState> = ExpMutations<
